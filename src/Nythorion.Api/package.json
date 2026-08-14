@@ -5,17 +5,22 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch index.js",
-    "start": "node index.js"
+    "dev": "cross-env NODE_EXTRA_CA_CERTS=./certs/aspnet-dev-cert.pem node --watch index.js",
+    "start": "cross-env NODE_EXTRA_CA_CERTS=./certs/aspnet-dev-cert.pem node index.js"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",
     "@fastify/multipart": "^9.0.1",
     "dotenv": "^16.4.5",
     "fastify": "^5.1.0",
+    "fastify-plugin": "^6.0.0",
+    "jose": "^6.2.8",
     "mammoth": "^1.8.0",
     "mongoose": "^8.8.0",
     "ollama": "^0.5.9",
     "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }

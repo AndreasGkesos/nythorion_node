@@ -1,10 +1,8 @@
 import { uploadDocument, listDocuments, deleteDocument } from './documents.service.js'
 
-const STUB_USER_ID = 'dev-user'
-
 export async function documentsRoutes(fastify) {
   fastify.get('/documents', async (request, reply) => {
-    const documents = await listDocuments(STUB_USER_ID)
+    const documents = await listDocuments(request.userId)
     return reply.send(documents)
   })
 
@@ -23,7 +21,7 @@ export async function documentsRoutes(fastify) {
     if (!file) return reply.code(400).send({ error: 'No file uploaded' })
 
     const result = await uploadDocument({
-      userId: STUB_USER_ID,
+      userId: request.userId,
       displayName: displayName || file.filename,
       fileName: file.filename,
       contentType: file.mimetype,
@@ -35,7 +33,7 @@ export async function documentsRoutes(fastify) {
   })
 
   fastify.delete('/documents/:id', async (request, reply) => {
-    const deleted = await deleteDocument(STUB_USER_ID, request.params.id)
+    const deleted = await deleteDocument(request.userId, request.params.id)
     if (!deleted) return reply.code(404).send({ error: 'Document not found' })
     return reply.code(204).send()
   })

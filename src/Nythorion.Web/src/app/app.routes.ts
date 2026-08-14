@@ -2,30 +2,32 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { CallbackComponent } from './core/components/callback';
 
-// TEMP: authGuard disabled on document/search routes while auth is not yet wired
-// into Nythorion.Api (see CLAUDE.md build order — auth is its own later slice).
-// Restore `canActivate: [authGuard]` once that slice lands.
 export const routes: Routes = [
   { path: '', redirectTo: 'documents', pathMatch: 'full' },
   { path: 'callback', component: CallbackComponent },
   {
     path: 'documents',
-    loadComponent: () => import('./features/documents/components/documents-page').then(m => m.DocumentsPage)
+    loadComponent: () => import('./features/documents/components/documents-page').then(m => m.DocumentsPage),
+    canActivate: [authGuard]
   },
   {
     path: 'documents/:id',
-    loadComponent: () => import('./features/documents/components/document-detail-page').then(m => m.DocumentDetailPage)
+    loadComponent: () => import('./features/documents/components/document-detail-page').then(m => m.DocumentDetailPage),
+    canActivate: [authGuard]
   },
   {
     path: 'search',
-    loadComponent: () => import('./features/search/components/search-page').then(m => m.SearchPage)
+    loadComponent: () => import('./features/search/components/search-page').then(m => m.SearchPage),
+    canActivate: [authGuard]
   },
   {
     path: 'ask',
-    loadComponent: () => import('./features/search/components/ask-page').then(m => m.AskPage)
+    loadComponent: () => import('./features/search/components/ask-page').then(m => m.AskPage),
+    canActivate: [authGuard]
   },
   {
     path: 'chat',
-    loadComponent: () => import('./features/search/components/chat-page').then(m => m.ChatPage)
+    loadComponent: () => import('./features/search/components/chat-page').then(m => m.ChatPage),
+    canActivate: [authGuard]
   }
 ];

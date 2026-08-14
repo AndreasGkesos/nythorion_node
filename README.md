@@ -40,33 +40,135 @@ MongoDB's native vector search (`$vectorSearch`) is a public preview feature tha
 - **Phase 1 (current)**: embeddings are stored as a plain array field on each chunk document. Semantic search computes cosine similarity in JavaScript over the candidate chunks. No `mongot`, no replica set required — just `mongod`.
 - **Phase 2 (planned upgrade)**: once the app is fully working, add `mongot` + a single-node replica set and switch to a native `$vectorSearch` index for real vector search performance.
 
-## Setup
+## Prerequisites
 
-### 1. Install the databases natively
-- **PostgreSQL**: download and run the installer from https://www.postgresql.org/download/windows/ (PostgreSQL 16.x, Windows x86-64). Set a superuser password during install, keep the default port `5432`.
-- **MongoDB Community Server**: download and run the installer from https://www.mongodb.com/try/download/community (current stable, Windows x64, msi package). Choose "Complete" setup, keep "Install MongoDB as a Service" checked, default port `27017`.
+Download and install each of these before starting:
+
+| Tool | Version |
+|------|---------|
+| .NET SDK | 9.0 |
+| Node.js | 20+ |
+| PostgreSQL | 16.x |
+| MongoDB Community Server | 8.2+ |
+| Ollama | latest |
+
+> **GPU note:** A dedicated GPU with 6GB+ VRAM is recommended for acceptable response times. Ollama can run on CPU only, but generation will be slow.
+
+---
+
+## First-time setup
+
+### 1. Trust the HTTPS development certificate
+
+Run this once per machine after installing the .NET SDK:
+
+```bash
+dotnet dev-certs https --trust
+```
+
+When prompted, click **Yes** to trust the certificate.
+
+This makes the browser and .NET itself trust `Nythorion.Auth`'s local HTTPS cert, but **Node.js does not read the Windows trust store** — `Nythorion.Api` needs its own copy of the cert to validate JWTs against Auth's JWKS endpoint. Export one:
+
+```bash
+dotnet dev-certs https --export-path src/Nythorion.Api/certs/aspnet-dev-cert.pem --format PEM --no-password
+```
+
+This is machine-specific (gitignored) — anyone running this project needs to run this export themselves, once.
+
+### 2. Install PostgreSQL and MongoDB natively
+
+Unlike the original project, this one does **not** use Docker — Docker Desktop's image-pull path proved unreliable on the original dev machine, so both databases run as plain native Windows services instead.
+
+- **PostgreSQL**: installer from https://www.postgresql.org/download/windows/. Set a superuser password during install, keep the default port `5432`.
+- **MongoDB Community Server**: installer from https://www.mongodb.com/try/download/community. Choose "Complete" setup, keep "Install MongoDB as a Service" checked, default port `27017`.
 
 After installing, create the `nythorion_node_auth` database in Postgres (via `psql` or pgAdmin):
+
 ```sql
 CREATE DATABASE nythorion_node_auth;
 ```
+
 MongoDB's `nythorion_node` database is created automatically on first write — no manual step needed.
 
-### 2. Configure and run Nythorion.Auth
-- Copy `appsettings.Development.json.example` → `appsettings.Development.json`
-- Set the connection string to point at `nythorion_node_auth`, not the original project's database
-- Do not reuse secrets from the original project — generate fresh local values
-- `dotnet run` from `src/Nythorion.Auth`
+### 3. Pull Ollama models
 
-### 3. Configure and run Nythorion.Web
-- Update the API base URL to point at this project's Node backend (see `Nythorion.Api` below), not the original .NET API
-- `npm install && npm start` from `src/Nythorion.Web`
+Make sure Ollama is running (it should appear in your system tray after installation), then pull the two models the app uses:
 
-### 4. Build and run Nythorion.Api (Node backend)
-This is the part being actively built. See `CLAUDE.md` for architecture, coding standards, and the feature specification this backend needs to replicate.
+```bash
+ollama pull qwen2.5:7b-instruct-q4_K_M
+ollama pull nomic-embed-text
+```
 
-### 5. Ollama
-Make sure Ollama is running locally with `qwen2.5:7b` and `nomic-embed-text` pulled — same models as the original project, no change needed here.
+The first model (~4.7GB) handles text generation. The second handles search embeddings. This only needs to be done once.
+
+### 4. Configure Nythorion.Auth
+
+Copy the example config file:
+
+- **bash:** `cp src/Nythorion.Auth/appsettings.Development.json.example src/Nythorion.Auth/appsettings.Development.json`
+- **PowerShell:** `copy src/Nythorion.Auth/appsettings.Development.json.example src/Nythorion.Auth/appsettings.Development.json`
+
+Then open the file, point the connection string at `nythorion_node_auth` with your own Postgres superuser credentials, and set a password for the admin account you'll log in with:
+
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Host=localhost;Port=5432;Database=nythorion_node_auth;Username=postgres;Password=your-postgres-password"
+  },
+  "AdminUser": {
+    "Username": "admin",
+    "Password": "your-password-here"
+  }
+}
+```
+
+Do not reuse secrets from the original project — generate fresh local values.
+
+### 5. Run Auth database migrations
+
+```bash
+dotnet ef database update --project src/Nythorion.Auth
+```
+
+You only need to run this once, and again after pulling updates that include new migrations.
+
+### 6. Configure Nythorion.Api
+
+```bash
+cd src/Nythorion.Api
+npm install
+```
+
+Create a `.env` file (see `.env.example` at the repo root) with your Mongo URI, Auth server URL, and Ollama settings.
+
+### 7. Configure Nythorion.Web
+
+- Update `src/Nythorion.Web/src/environments/environment.ts`'s `apiUrl` to point at `Nythorion.Api` (`http://localhost:3000`) instead of the original .NET API
+- `npm install` from `src/Nythorion.Web`
+
+---
+
+## Running
+
+You need three things running at the same time. Open three separate terminals from the repo root:
+
+```bash
+# Terminal 1 — Auth server (must use the https profile to bind to port 7087)
+dotnet run --project src/Nythorion.Auth --launch-profile https
+
+# Terminal 2 — API
+cd src/Nythorion.Api
+npm start
+
+# Terminal 3 — Frontend
+cd src/Nythorion.Web
+npm start
+```
+
+Then open `http://localhost:4200` and log in with the admin credentials you set in step 4.
+
+> **Ollama must be running** before you start the backend.
 
 ## Status
 

@@ -14,11 +14,6 @@ function initAuth(auth: AuthService) {
   };
 }
 
-// TEMP: APP_INITIALIZER auth bootstrap disabled while Nythorion.Api has no auth
-// wired up yet (see CLAUDE.md build order — auth is its own later slice).
-// With it enabled, app bootstrap blocks on fetching Nythorion.Auth's OIDC
-// discovery document, which hangs the app if Auth isn't running. Restore
-// once the auth slice lands.
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -26,11 +21,11 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideOAuthClient(),
-    // {
-    //   provide: APP_INITIALIZER,
-    //   useFactory: initAuth,
-    //   deps: [AuthService],
-    //   multi: true
-    // }
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initAuth,
+      deps: [AuthService],
+      multi: true
+    }
   ]
 };

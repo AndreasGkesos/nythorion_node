@@ -1,6 +1,7 @@
 # Environment
 .env
 src/Nythorion.Auth/appsettings.Development.json
+src/Nythorion.Api/certs/
 
 # Node
 node_modules/
