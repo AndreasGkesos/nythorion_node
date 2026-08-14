@@ -9,20 +9,8 @@ const PARSERS = {
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': parseDocx
 }
 
-export async function uploadDocument({ userId, displayName, fileName, contentType, fileSizeBytes, buffer }) {
+async function processDocument(document, userId, contentType, buffer) {
   const parse = PARSERS[contentType]
-  if (!parse) throw new Error(`Unsupported file type: ${contentType}`)
-
-  const document = await Document.create({
-    userId,
-    displayName,
-    fileName,
-    contentType,
-    fileSizeBytes,
-    status: 'Processing'
-  })
-
-  let chunkCount = 0
 
   try {
     const text = await parse(buffer)
@@ -41,7 +29,6 @@ export async function uploadDocument({ userId, displayName, fileName, contentTyp
     }
 
     await DocumentChunk.insertMany(chunkDocs)
-    chunkCount = chunkDocs.length
 
     document.status = 'Ready'
     await document.save()
@@ -50,8 +37,28 @@ export async function uploadDocument({ userId, displayName, fileName, contentTyp
     await document.save()
     throw err
   }
+}
 
-  return { documentId: document._id.toString(), chunkCount }
+export async function uploadDocument({ userId, displayName, fileName, contentType, fileSizeBytes, buffer }) {
+  if (!PARSERS[contentType]) throw new Error(`Unsupported file type: ${contentType}`)
+
+  const document = await Document.create({
+    userId,
+    displayName,
+    fileName,
+    contentType,
+    fileSizeBytes,
+    status: 'Processing'
+  })
+
+  // Fire-and-forget: parsing/chunking/embedding runs in the background so the
+  // upload request returns immediately. The UI polls GET /documents and picks
+  // up the status transition to Ready/Failed.
+  processDocument(document, userId, contentType, buffer).catch(err => {
+    console.error(`Document processing failed for ${document._id}:`, err)
+  })
+
+  return { documentId: document._id.toString() }
 }
 
 export async function listDocuments(userId) {

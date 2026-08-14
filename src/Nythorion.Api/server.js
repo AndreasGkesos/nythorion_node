@@ -10,7 +10,7 @@ export function buildServer() {
   const fastify = Fastify({ logger: true })
 
   fastify.register(cors, { origin: 'http://localhost:4200' })
-  fastify.register(multipart)
+  fastify.register(multipart, { limits: { fileSize: 50 * 1024 * 1024 } })
   fastify.register(authPlugin)
   fastify.register(documentsRoutes)
   fastify.register(searchRoutes)
