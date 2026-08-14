@@ -1,0 +1,223 @@
+<div class="detail-container">
+  <a mat-button routerLink="/documents" class="back-link">
+    <mat-icon>arrow_back</mat-icon> Documents
+  </a>
+
+  <mat-tab-group animationDuration="200ms">
+
+    <!-- SUMMARY TAB -->
+    <mat-tab label="Summary">
+      <div class="tab-content">
+        @if (loadingSummary()) {
+          <div class="center"><mat-spinner diameter="40"></mat-spinner></div>
+        } @else if (summary()) {
+          <mat-card>
+            <mat-card-content>
+              <p class="summary-text">{{ summary()!.content }}</p>
+            </mat-card-content>
+          </mat-card>
+        } @else {
+          <p class="empty-state">No summary available yet.</p>
+        }
+
+        <div class="generate-action">
+          <button mat-flat-button color="primary" (click)="generateSummary()" [disabled]="generatingSummary() || loadingSummary()">
+            @if (generatingSummary()) {
+              <mat-spinner diameter="18"></mat-spinner>
+            } @else {
+              <mat-icon>refresh</mat-icon>
+            }
+            {{ summary() ? 'Regenerate Summary' : 'Generate Summary' }}
+          </button>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- FLASHCARDS TAB -->
+    <mat-tab label="Flashcards">
+      <div class="tab-content">
+        @if (loadingFlashcards()) {
+          <div class="center"><mat-spinner diameter="40"></mat-spinner></div>
+        } @else if (flashcards().length === 0) {
+          <p class="empty-state">No flashcards yet.</p>
+        } @else {
+          <div class="flashcard-nav">
+            <span class="card-counter">{{ currentFlashcardIndex() + 1 }} / {{ flashcards().length }}</span>
+          </div>
+
+          <div class="flashcard" (click)="flipCard()" [class.flipped]="flashcardFlipped()">
+            <div class="flashcard-inner">
+              <div class="flashcard-front">
+                <p>{{ currentFlashcard()?.question }}</p>
+              </div>
+              <div class="flashcard-back">
+                <p>{{ currentFlashcard()?.answer }}</p>
+              </div>
+            </div>
+            <span class="flip-hint">Click to flip</span>
+          </div>
+
+          <div class="flashcard-controls">
+            <button mat-icon-button (click)="prevCard()" [disabled]="currentFlashcardIndex() === 0">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <button mat-stroked-button color="warn"
+              (click)="deleteFlashcard(currentFlashcard()!.id); $event.stopPropagation()">
+              <mat-icon>delete</mat-icon> Remove
+            </button>
+            <button mat-icon-button (click)="nextCard()" [disabled]="currentFlashcardIndex() === flashcards().length - 1">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        }
+
+        <div class="generate-action">
+          <button mat-flat-button color="primary" (click)="generateFlashcard()" [disabled]="generatingFlashcard() || generatingFlashcards()">
+            @if (generatingFlashcard()) {
+              <mat-spinner diameter="18"></mat-spinner>
+            } @else {
+              <mat-icon>add</mat-icon>
+            }
+            Generate One
+          </button>
+          <button mat-flat-button color="accent" (click)="generateFlashcards(5)" [disabled]="generatingFlashcards() || generatingFlashcard()">
+            @if (generatingFlashcards()) {
+              <mat-spinner diameter="18"></mat-spinner>
+            } @else {
+              <mat-icon>auto_awesome</mat-icon>
+            }
+            Generate 5
+          </button>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- QUIZ TAB -->
+    <mat-tab label="Quiz">
+      <div class="tab-content">
+        @if (loadingQuiz()) {
+          <div class="center"><mat-spinner diameter="40"></mat-spinner></div>
+        } @else if (quiz().length === 0) {
+          <p class="empty-state">No quiz questions yet.</p>
+          <div class="generate-action">
+            <button mat-flat-button color="primary" (click)="generateQuestion()" [disabled]="generatingQuestion() || generatingQuiz()">
+              @if (generatingQuestion()) {
+                <mat-spinner diameter="18"></mat-spinner>
+              } @else {
+                <mat-icon>add</mat-icon>
+              }
+              Generate One
+            </button>
+            <button mat-flat-button color="accent" (click)="generateQuiz(5)" [disabled]="generatingQuiz() || generatingQuestion()">
+              @if (generatingQuiz()) {
+                <mat-spinner diameter="18"></mat-spinner>
+              } @else {
+                <mat-icon>auto_awesome</mat-icon>
+              }
+              Generate Quiz (5)
+            </button>
+          </div>
+        } @else {
+          @if (quizSubmitted()) {
+            <div class="quiz-score">
+              <mat-icon>emoji_events</mat-icon>
+              Score: {{ quizScore() }} / {{ quiz().length }}
+              <button mat-stroked-button (click)="resetQuiz()">Try Again</button>
+            </div>
+          }
+
+          @for (question of quiz(); track question.id; let i = $index) {
+            <mat-card class="quiz-card">
+              <mat-card-header>
+                <mat-card-title>{{ i + 1 }}. {{ question.question }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <div class="options">
+                  @for (option of question.options; track $index) {
+                    <button class="option-btn"
+                      [class.selected]="!quizSubmitted() && quizAnswers()[question.id] === $index"
+                      [class.correct]="quizSubmitted() && $index === question.correctOptionIndex"
+                      [class.wrong]="quizSubmitted() && quizAnswers()[question.id] === $index && $index !== question.correctOptionIndex"
+                      (click)="selectAnswer(question.id, $index)">
+                      {{ option }}
+                    </button>
+                  }
+                </div>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-icon-button color="warn" (click)="deleteQuestion(question.id)" title="Remove question">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          }
+
+          <div class="quiz-actions">
+            @if (!quizSubmitted()) {
+              <button mat-flat-button color="primary" (click)="submitQuiz()">Submit Quiz</button>
+            }
+            <button mat-stroked-button color="primary" (click)="generateQuestion()" [disabled]="generatingQuestion() || generatingQuiz()">
+              @if (generatingQuestion()) {
+                <mat-spinner diameter="18"></mat-spinner>
+              } @else {
+                <mat-icon>add</mat-icon>
+              }
+              Generate One
+            </button>
+            <button mat-stroked-button color="accent" (click)="generateQuiz(5)" [disabled]="generatingQuiz() || generatingQuestion()">
+              @if (generatingQuiz()) {
+                <mat-spinner diameter="18"></mat-spinner>
+              } @else {
+                <mat-icon>auto_awesome</mat-icon>
+              }
+              Generate 5 More
+            </button>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- NOTES TAB -->
+    <mat-tab label="Notes">
+      <div class="tab-content">
+        <div class="note-input">
+          <mat-form-field appearance="outline" class="note-field">
+            <mat-label>Write a note</mat-label>
+            <textarea matInput [ngModel]="newNoteContent()" (ngModelChange)="newNoteContent.set($event)" rows="3" (keydown.control.enter)="addNote()"></textarea>
+          </mat-form-field>
+          <button mat-flat-button color="primary" (click)="addNote()" [disabled]="savingNote() || !newNoteContent().trim()">
+            @if (savingNote()) {
+              <mat-spinner diameter="18"></mat-spinner>
+            } @else {
+              <mat-icon>add</mat-icon>
+            }
+            Add Note
+          </button>
+        </div>
+
+        @if (loadingNotes()) {
+          <div class="center"><mat-spinner diameter="40"></mat-spinner></div>
+        } @else if (notes().length === 0) {
+          <p class="empty-state">No notes yet.</p>
+        } @else {
+          <div class="notes-list">
+            @for (note of notes(); track note.id) {
+              <mat-card class="note-card">
+                <mat-card-content>
+                  <p class="note-content">{{ note.content }}</p>
+                  <span class="note-date">{{ note.updatedAt | date:'medium' }}</span>
+                </mat-card-content>
+                <mat-card-actions align="end">
+                  <button mat-icon-button color="warn" (click)="deleteNote(note.id)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            }
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+</div>

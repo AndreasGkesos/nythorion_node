@@ -1,0 +1,61 @@
+<div class="chat-container">
+  <div class="page-header">
+    <h1>Chat</h1>
+    <p class="subtitle">Have a conversation with your documents.</p>
+  </div>
+
+  <div class="controls">
+    <mat-slide-toggle [checked]="specificDocument()" (change)="onToggleChange($event.checked)">
+      Specific document
+    </mat-slide-toggle>
+
+    @if (specificDocument()) {
+      <mat-form-field appearance="outline" class="document-select">
+        <mat-label>Select document</mat-label>
+        <mat-select [ngModel]="selectedDocumentId()" (ngModelChange)="selectedDocumentId.set($event)">
+          @for (doc of documents(); track doc.id) {
+            <mat-option [value]="doc.id">{{ doc.displayName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+
+    @if (messages().length > 0) {
+      <button mat-stroked-button (click)="clearChat()">
+        <mat-icon>delete_sweep</mat-icon>
+        Clear chat
+      </button>
+    }
+  </div>
+
+  <div class="messages">
+    @for (message of messages(); track $index) {
+      <div class="message" [class.user]="message.role === 'user'" [class.assistant]="message.role === 'assistant'">
+        <div class="bubble">
+          <p>{{ message.content }}</p>
+        </div>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="message assistant">
+        <div class="bubble loading-bubble">
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>Thinking...</span>
+        </div>
+      </div>
+    }
+
+    <div #messagesEnd></div>
+  </div>
+
+  <div class="input-bar">
+    <mat-form-field appearance="outline" class="input-field">
+      <mat-label>Ask a question</mat-label>
+      <input matInput [ngModel]="input()" (ngModelChange)="input.set($event)" (keydown.enter)="send()" />
+    </mat-form-field>
+    <button mat-flat-button color="primary" (click)="send()" [disabled]="loading() || !input().trim() || (specificDocument() && !selectedDocumentId())">
+      <mat-icon>send</mat-icon>
+    </button>
+  </div>
+</div>

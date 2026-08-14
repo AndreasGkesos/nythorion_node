@@ -1,0 +1,6 @@
+@Nythorion.Auth_HostAddress = http://localhost:5255
+
+GET {{Nythorion.Auth_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,45 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="sidenav-header">
+      <span class="app-name">Nythorion</span>
+    </div>
+    <mat-nav-list>
+      <a mat-list-item routerLink="/documents" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>library_books</mat-icon>
+        <span matListItemTitle>Library</span>
+      </a>
+      <a mat-list-item routerLink="/search" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>search</mat-icon>
+        <span matListItemTitle>Search</span>
+      </a>
+      <a mat-list-item routerLink="/ask" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>psychology</mat-icon>
+        <span matListItemTitle>Ask Once</span>
+      </a>
+      <a mat-list-item routerLink="/chat" routerLinkActive="active-link">
+        <mat-icon matListItemIcon>chat</mat-icon>
+        <span matListItemTitle>Chat</span>
+      </a>
+    </mat-nav-list>
+
+    @if (configService.config(); as cfg) {
+      <div class="sidenav-config">
+        <div class="config-row"><span class="config-label">Model</span><span class="config-value">{{ cfg.llmModel }}</span></div>
+        <div class="config-row"><span class="config-label">Embeddings</span><span class="config-value">{{ cfg.embedModel }}</span></div>
+        <div class="config-row"><span class="config-label">Temperature</span><span class="config-value">{{ cfg.temperature }}</span></div>
+        <div class="config-row"><span class="config-label">Max tokens</span><span class="config-value">{{ cfg.numPredict }}</span></div>
+      </div>
+    }
+
+    <div class="sidenav-footer">
+      <span class="username">{{ username }}</span>
+      <button mat-icon-button (click)="logout()" title="Sign out">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main-content">
+    <router-outlet />
+  </mat-sidenav-content>
+</mat-sidenav-container>

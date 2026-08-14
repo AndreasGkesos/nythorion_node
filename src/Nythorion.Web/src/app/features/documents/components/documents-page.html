@@ -1,0 +1,62 @@
+<div class="page-header">
+  <h1>Library</h1>
+  <button mat-flat-button (click)="openUploadDialog()" [disabled]="uploading()">
+    <mat-icon>upload_file</mat-icon>
+    {{ uploading() ? 'Uploading...' : 'Upload Document' }}
+  </button>
+</div>
+
+@if (loading() && documents().length === 0) {
+  <div class="loading-container">
+    <mat-spinner diameter="40" />
+  </div>
+} @else if (documents().length === 0) {
+  <div class="empty-state">
+    <mat-icon>library_books</mat-icon>
+    <p>No documents yet. Upload a PDF or DOCX to get started.</p>
+  </div>
+} @else {
+  <div class="document-list">
+    @for (doc of documents(); track doc.id) {
+      <div class="document-row" [class.processing]="doc.status === 'Processing' || doc.status === 'Uploading'">
+        <mat-icon class="doc-icon">description</mat-icon>
+
+        <div class="doc-info">
+          @if (editingId() === doc.id) {
+            <input class="name-input" [(ngModel)]="editingName"
+              (keydown.enter)="saveEdit(doc)"
+              (keydown.escape)="cancelEdit()"
+              (blur)="saveEdit(doc)"
+              autofocus />
+          } @else {
+            <span class="doc-name">{{ doc.displayName }}</span>
+          }
+          <span class="doc-meta doc-filename">{{ doc.fileName }}</span>
+          <span class="doc-meta doc-id">{{ doc.id }}</span>
+          <span class="doc-meta">{{ formatSize(doc.fileSizeBytes) }} &middot; {{ doc.uploadedAt | date:'dd MMM yyyy' }}</span>
+        </div>
+
+        <div class="doc-status">
+          @if (doc.status === 'Processing' || doc.status === 'Uploading') {
+            <mat-spinner diameter="18" />
+          }
+          <span class="status-label status-{{ doc.status.toLowerCase() }}">{{ doc.status }}</span>
+        </div>
+
+        <div class="doc-actions">
+          <button mat-icon-button (click)="startEdit(doc)" matTooltip="Rename">
+            <mat-icon>edit</mat-icon>
+          </button>
+          @if (doc.status === 'Ready') {
+            <a mat-stroked-button [routerLink]="['/documents', doc.id]">
+              <mat-icon>open_in_new</mat-icon> View
+            </a>
+          }
+          <button mat-icon-button color="warn" (click)="deleteDocument(doc.id)" title="Delete">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+}

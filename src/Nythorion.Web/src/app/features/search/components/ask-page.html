@@ -1,0 +1,47 @@
+<div class="page-header">
+  <h1>Ask</h1>
+  <p class="subtitle">Get an AI-synthesized answer based on your documents.</p>
+</div>
+
+<div class="controls">
+  <mat-slide-toggle [checked]="specificDocument()" (change)="onToggleChange($event.checked)">
+    Specific document
+  </mat-slide-toggle>
+
+  @if (specificDocument()) {
+    <mat-form-field appearance="outline" class="document-select">
+      <mat-label>Select document</mat-label>
+      <mat-select [ngModel]="selectedDocumentId()" (ngModelChange)="selectedDocumentId.set($event)">
+        @for (doc of documents(); track doc.id) {
+          <mat-option [value]="doc.id">{{ doc.displayName }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+</div>
+
+<div class="search-bar">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Ask a question about your documents</mat-label>
+    <input matInput [(ngModel)]="question" (keyup.enter)="ask()" />
+    <mat-icon matSuffix>psychology</mat-icon>
+  </mat-form-field>
+  <button mat-flat-button (click)="ask()" [disabled]="loading() || (specificDocument() && !selectedDocumentId())">Ask</button>
+</div>
+
+@if (loading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="40" />
+    <p class="loading-text">Thinking...</p>
+  </div>
+} @else if (asked() && result()) {
+  <mat-card class="answer-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>lightbulb</mat-icon>
+      <mat-card-title>Answer</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p class="answer-text">{{ result()!.answer }}</p>
+    </mat-card-content>
+  </mat-card>
+}

@@ -1,0 +1,107 @@
+.sidenav-container {
+  height: 100vh;
+}
+
+$sidenav-bg: #1a2e1a;
+$sidenav-text: rgba(255, 255, 255, 0.9);
+$sidenav-divider: rgba(255, 255, 255, 0.12);
+$sidenav-active-bg: rgba(56, 142, 60, 0.4);
+$sidenav-active-text: #a5d6a7;
+
+.sidenav {
+  width: 220px;
+  background-color: $sidenav-bg;
+  border-right: none;
+  display: flex;
+  flex-direction: column;
+
+  --mat-list-list-item-label-text-color: #{$sidenav-text};
+  --mat-list-list-item-leading-icon-color: #{$sidenav-text};
+  --mat-list-list-item-hover-state-layer-color: rgba(255, 255, 255, 0.08);
+  --mat-list-list-item-focus-state-layer-color: rgba(255, 255, 255, 0.08);
+  --mat-list-list-item-hover-label-text-color: #{$sidenav-text};
+  --mat-list-list-item-focus-label-text-color: #{$sidenav-text};
+  --mat-list-list-item-hover-leading-icon-color: #{$sidenav-text};
+  --mat-list-list-item-focus-leading-icon-color: #{$sidenav-text};
+}
+
+mat-nav-list {
+  flex: 1;
+}
+
+.sidenav-config {
+  padding: 12px 16px;
+  border-top: 1px solid $sidenav-divider;
+}
+
+.config-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.config-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+}
+
+.config-value {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidenav-footer {
+  padding: 12px 16px;
+  border-top: 1px solid $sidenav-divider;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  --mdc-icon-button-icon-color: rgba(255, 255, 255, 0.9);
+  --mat-icon-button-icon-color: rgba(255, 255, 255, 0.9);
+  --mat-icon-button-state-layer-color: rgba(255, 255, 255, 0.1);
+}
+
+.username {
+  flex: 1;
+  font-size: .875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidenav-header {
+  padding: 20px 16px 12px;
+  border-bottom: 1px solid $sidenav-divider;
+  margin-bottom: 8px;
+}
+
+.app-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #a5d6a7;
+  letter-spacing: -0.02em;
+}
+
+.main-content {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.active-link {
+  background-color: $sidenav-active-bg !important;
+  border-radius: 8px;
+
+  --mat-list-list-item-label-text-color: #{$sidenav-active-text};
+  --mat-list-list-item-leading-icon-color: #{$sidenav-active-text};
+}

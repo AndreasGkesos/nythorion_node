@@ -1,0 +1,21 @@
+# Environment
+.env
+src/Nythorion.Auth/appsettings.Development.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# .NET
+bin/
+obj/
+*.user
+.vs/
+
+# Angular
+src/Nythorion.Web/dist/
+src/Nythorion.Web/.angular/
+
+# OS
+.DS_Store
+Thumbs.db
