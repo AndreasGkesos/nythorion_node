@@ -25,32 +25,33 @@ src/
   Nythorion.Auth/         # OpenIddict auth server, unchanged, separate ASP.NET Core app
   Nythorion.Web/          # Angular SPA, unchanged
   Nythorion.Api/          # NEW — Node.js/Fastify backend (to be built)
-docker/
-  docker-compose.yml      # PostgreSQL (for Auth, unchanged) + MongoDB (mongod + mongot for the app)
 ```
 
 ## Technology stack
 - Node.js (Fastify)
-- MongoDB Community Edition 8.2+ (native vector search — requires `mongod` + `mongot` containers, single-node replica set)
+- MongoDB Community Edition 8.2+, installed natively on Windows (native vector search — requires `mongod` + `mongot`, single-node replica set — see Phase 2 below)
 - Mongoose
-- Ollama (runs on host, not in Docker) — qwen2.5:7b for LLM, nomic-embed-text for embeddings, called via the `ollama` npm package
+- PostgreSQL, installed natively on Windows (used by Nythorion.Auth only)
+- Ollama (runs on host) — qwen2.5:7b for LLM, nomic-embed-text for embeddings, called via the `ollama` npm package
 - OpenIddict for auth (unchanged)
 - Angular (unchanged)
 
+**Note on Docker**: this project does not use Docker. Postgres and MongoDB are installed as native Windows services instead. This was a deliberate switch after Docker Desktop's containerd image-pull path proved unreliable on this machine — native installs avoid that entirely and keep setup simple, in line with this project's "it runs" priority.
+
 ## Database and semantic search — phased approach
 
-Two databases, on two different engines — this is a change from the original project, not a straight carry-over. This project is fully self-contained: it does not depend on the original .NET project's containers, databases, or repo being present on the machine at all. Everything needed is created fresh by this project's own Docker Compose setup.
+Two databases, on two different engines — this is a change from the original project, not a straight carry-over. This project is fully self-contained: it does not depend on the original .NET project's databases or repo being present on the machine at all. Everything needed is created fresh, natively, on this machine.
 
 - **`nythorion_node`** — the app's **MongoDB** database (documents, chunks, embeddings, flashcards, quizzes, notes). This is the one being rebuilt.
 - **`nythorion_node_auth`** — the Auth server's database, **PostgreSQL**, functionally identical to the original project's `nythorion_auth` (same OpenIddict tables via EF Core) but created under a different name in this project's own Postgres container. The different name is intentional — it avoids a collision if someone ever runs both the original .NET project and this Node project on the same machine at the same time.
 
-Docker Compose in this project must create **both** databases from scratch on first run:
-- A Postgres container/service, initializing the `nythorion_node_auth` database (adapt the original project's `init-db.sql` pattern, renamed)
-- A MongoDB container/service (`mongod`, plus `mongot` once Phase 2 vector search is added) for `nythorion_node`
+Both databases run as native Windows services, installed directly (PostgreSQL and MongoDB Community Server installers), not in Docker:
+- PostgreSQL: create the `nythorion_node_auth` database manually after install (via `psql` or pgAdmin)
+- MongoDB: `nythorion_node` database is created implicitly on first write, no manual step needed
 
-**Known limitation, not yet solved**: if both the original .NET project and this Node project are run at the same time, other ports (Auth server, Postgres, etc.) will still collide by default since both projects use the same defaults. Out of scope for now — note it here so it isn't a surprise later, and revisit if running both simultaneously actually becomes a need.
+**Known limitation, not yet solved**: if both the original .NET project and this Node project are run at the same time, other ports (Auth server, Postgres, etc.) will still collide by default since both projects use the same defaults, and both would be pointing at the same native Postgres instance unless run against different local database names/instances. Out of scope for now — note it here so it isn't a surprise later, and revisit if running both simultaneously actually becomes a need.
 
-MongoDB's native vector search (`$vectorSearch`) requires a companion `mongot` process alongside `mongod`, plus a single-node replica set — it is a **public preview feature**, newer and less battle-tested than the pgvector setup from the original project. Setup is fiddly (replica set init, `mongot` user/sync-source config) and worth expecting friction on.
+MongoDB's native vector search (`$vectorSearch`) requires a companion `mongot` process alongside `mongod`, plus a single-node replica set — it is a **public preview feature**, newer and less battle-tested than the pgvector setup from the original project. Setup is fiddly (replica set init, `mongot` user/sync-source config) and worth expecting friction on, especially without Docker to isolate it.
 
 Given that, and given the project's "make it run first" priority, semantic search should be built in two phases:
 
