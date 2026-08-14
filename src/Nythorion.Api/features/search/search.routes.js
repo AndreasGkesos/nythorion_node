@@ -1,5 +1,6 @@
 import { semanticSearch } from './search.service.js'
 import { ask } from './ask.service.js'
+import { chat } from './chat.service.js'
 
 export async function searchRoutes(fastify) {
   fastify.post('/search', async (request, reply) => {
@@ -20,6 +21,18 @@ export async function searchRoutes(fastify) {
     const result = await ask({
       userId: request.userId,
       question,
+      documentId: documentId || undefined
+    })
+
+    return reply.send(result)
+  })
+
+  fastify.post('/search/chat', async (request, reply) => {
+    const { messages, documentId } = request.body
+
+    const result = await chat({
+      userId: request.userId,
+      messages,
       documentId: documentId || undefined
     })
 
