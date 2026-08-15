@@ -4,6 +4,7 @@ import multipart from '@fastify/multipart'
 import authPlugin from './plugins/auth.js'
 import { documentsRoutes } from './features/documents/documents.routes.js'
 import { searchRoutes } from './features/search/search.routes.js'
+import { summariesRoutes } from './features/summaries/summaries.routes.js'
 import { configRoutes } from './features/config/config.routes.js'
 
 export function buildServer() {
@@ -14,6 +15,7 @@ export function buildServer() {
   fastify.register(authPlugin)
   fastify.register(documentsRoutes)
   fastify.register(searchRoutes)
+  fastify.register(summariesRoutes)
   fastify.register(configRoutes)
 
   return fastify
