@@ -7,6 +7,7 @@ import { searchRoutes } from './features/search/search.routes.js'
 import { summariesRoutes } from './features/summaries/summaries.routes.js'
 import { flashcardsRoutes } from './features/flashcards/flashcards.routes.js'
 import { quizRoutes } from './features/quiz/quiz.routes.js'
+import { notesRoutes } from './features/notes/notes.routes.js'
 import { configRoutes } from './features/config/config.routes.js'
 
 export function buildServer() {
@@ -20,6 +21,7 @@ export function buildServer() {
   fastify.register(summariesRoutes)
   fastify.register(flashcardsRoutes)
   fastify.register(quizRoutes)
+  fastify.register(notesRoutes)
   fastify.register(configRoutes)
 
   return fastify
