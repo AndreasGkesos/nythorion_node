@@ -8,6 +8,8 @@ async function authPlugin(fastify) {
   fastify.decorateRequest('userId', null)
 
   fastify.addHook('onRequest', async (request, reply) => {
+    if (request.method === 'OPTIONS') return
+
     const authHeader = request.headers.authorization
     if (!authHeader?.startsWith('Bearer ')) {
       return reply.code(401).send({ error: 'Missing bearer token' })

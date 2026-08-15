@@ -13,7 +13,10 @@ import { configRoutes } from './features/config/config.routes.js'
 export function buildServer() {
   const fastify = Fastify({ logger: true })
 
-  fastify.register(cors, { origin: 'http://localhost:4200' })
+  fastify.register(cors, {
+    origin: 'http://localhost:4200',
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE']
+  })
   fastify.register(multipart, { limits: { fileSize: 50 * 1024 * 1024 } })
   fastify.register(authPlugin)
   fastify.register(documentsRoutes)
