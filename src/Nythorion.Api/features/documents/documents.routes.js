@@ -1,4 +1,4 @@
-import { uploadDocument, listDocuments, deleteDocument } from './documents.service.js'
+import { uploadDocument, listDocuments, renameDocument, deleteDocument } from './documents.service.js'
 
 export async function documentsRoutes(fastify) {
   fastify.get('/documents', async (request, reply) => {
@@ -20,16 +20,29 @@ export async function documentsRoutes(fastify) {
 
     if (!file) return reply.code(400).send({ error: 'No file uploaded' })
 
-    const result = await uploadDocument({
-      userId: request.userId,
-      displayName: displayName || file.filename,
-      fileName: file.filename,
-      contentType: file.mimetype,
-      fileSizeBytes: file.buffer.length,
-      buffer: file.buffer
-    })
+    try {
+      const result = await uploadDocument({
+        userId: request.userId,
+        displayName: displayName || file.filename,
+        fileName: file.filename,
+        contentType: file.mimetype,
+        fileSizeBytes: file.buffer.length,
+        buffer: file.buffer
+      })
+      return reply.code(201).send(result)
+    } catch (err) {
+      return reply.code(400).send({ error: err.message })
+    }
+  })
 
-    return reply.code(201).send(result)
+  fastify.patch('/documents/:id/name', async (request, reply) => {
+    try {
+      const renamed = await renameDocument(request.userId, request.params.id, request.body.displayName)
+      if (!renamed) return reply.code(404).send({ error: 'Document not found' })
+      return reply.code(204).send()
+    } catch (err) {
+      return reply.code(400).send({ error: err.message })
+    }
   })
 
   fastify.delete('/documents/:id', async (request, reply) => {
