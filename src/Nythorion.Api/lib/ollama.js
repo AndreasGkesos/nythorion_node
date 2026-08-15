@@ -8,10 +8,11 @@ export async function embed(text) {
   return response.embedding
 }
 
-export async function chat(systemPrompt, messages) {
+export async function chat(systemPrompt, messages, { jsonFormat = false } = {}) {
   const response = await client.chat({
     model: env.ollamaLlmModel,
     messages: [{ role: 'system', content: systemPrompt }, ...messages],
+    format: jsonFormat ? 'json' : undefined,
     options: {
       temperature: env.ollamaTemperature,
       num_predict: env.ollamaNumPredict
@@ -20,6 +21,6 @@ export async function chat(systemPrompt, messages) {
   return response.message.content
 }
 
-export async function generate(systemPrompt, userPrompt) {
-  return chat(systemPrompt, [{ role: 'user', content: userPrompt }])
+export async function generate(systemPrompt, userPrompt, options) {
+  return chat(systemPrompt, [{ role: 'user', content: userPrompt }], options)
 }
