@@ -17,7 +17,7 @@ function cosineDistance(a, b) {
 export async function semanticSearch({ userId, text, documentId, topK = DEFAULT_TOP_K }) {
   const queryEmbedding = await embed(text)
 
-  const filter = { userId }
+  const filter = { userId, 'embedding.0': { $exists: true } }
   if (documentId) filter.documentId = documentId
 
   const chunks = await DocumentChunk.find(filter)
