@@ -1,8 +1,28 @@
 # Nythorion Node
 
-A local AI-powered knowledge and learning platform — upload PDF/DOCX documents, get semantic search, RAG Q&A with citations, summaries, flashcards, quiz questions, and per-document notes. Runs entirely on your machine, no paid cloud APIs.
+## Overview
 
-This is a Node.js + MongoDB rebuild of the original [Nythorion](#) (.NET 9 + Angular + PostgreSQL/pgvector), built as a learning project focused specifically on Node.js and MongoDB.
+Nythorion Node is a local AI-powered knowledge and learning platform. Upload PDF or DOCX documents, then query them with natural language, generate summaries, and get auto-generated flashcards and quizzes — all processing happens locally, no paid cloud APIs or external data transmission.
+
+This is a Node.js + MongoDB rebuild of the original [Nythorion](https://github.com/AndreasGkesos/nythorion) (.NET 9 + Angular + PostgreSQL/pgvector), built as a learning project focused specifically on Node.js and MongoDB.
+
+## Features
+
+- **Document upload** — PDF/DOCX, parsed, chunked, and embedded in the background
+- **Semantic search** — vector similarity search across your documents
+- **RAG Q&A and chat** — ask questions grounded in your documents, with source citations; multi-turn chat with query rewriting
+- **Summaries** — map-reduce summarization of each document
+- **Flashcards & quizzes** — auto-generated after upload, or generate more on demand
+- **Notes** — free-text notes per document
+
+## Key Technologies
+
+- **Node.js + Fastify** (backend API)
+- **Angular** (frontend, reused from the original project)
+- **MongoDB** (application data, brute-force cosine similarity search — see [Semantic search](#semantic-search--phased-approach))
+- **PostgreSQL** (Auth server's OpenIddict tables)
+- **Ollama** (local LLM runtime — `qwen2.5:7b-instruct-q4_K_M` for generation, `nomic-embed-text` for embeddings)
+- **OpenIddict** (authentication, reused from the original project)
 
 ## Why parts of this repo are "copied," not built from scratch
 
@@ -170,6 +190,20 @@ Then open `http://localhost:4200` and log in with the admin credentials you set 
 
 > **Ollama must be running** before you start the backend.
 
+## Ollama Configuration
+
+Default settings live in `src/Nythorion.Api/.env`:
+
+- **OLLAMA_TEMPERATURE** — 0.1 by default (factual/deterministic; raise for more creative output)
+- **OLLAMA_NUM_PREDICT** — max output tokens, default 4096
+- **OLLAMA_BASE_URL** — Ollama service endpoint, default `http://localhost:11434`
+- **OLLAMA_LLM_MODEL** — `qwen2.5:7b-instruct-q4_K_M`
+- **OLLAMA_EMBED_MODEL** — `nomic-embed-text`
+
 ## Status
 
-This project is under active development. See `CLAUDE.md` for the full technical guide, coding philosophy, and build order.
+Core feature set is built and working end to end: upload/parse/chunk/embed, semantic search, RAG Q&A and chat, and auto-generated summaries/flashcards/quizzes on upload, plus notes. Still needs broader end-to-end testing across a wider variety of documents (different formats, lengths, and content types) to shake out edge cases. See `CLAUDE.md` for the full technical guide, coding philosophy, and build order.
+
+## License
+
+MIT
